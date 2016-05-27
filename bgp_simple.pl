@@ -25,7 +25,7 @@ bgp_simple.pl: Simple BGP peering and route injection script.
 Version $version, $version_date.
 
 usage:
-bgp_simple.pl: 
+bgp_simple.pl:
 	       	-myas   	ASNUMBER	# (mandatory) our AS number
 	       	-myip   	IP address	# (mandatory) our IP address to source the sesion from
 	     	-peerip 	IP address	# (mandatory) peer IP address
@@ -54,7 +54,7 @@ bgp_simple.pl:
 							ATOM		ATOMIC_AGGREGATE
 							AGG		AGGREGATOR
 
-							REGEX is a perl regular expression to be expected in a 
+							REGEX is a perl regular expression to be expected in a
 							match statement (m/REGEX/)
 
 Without any prefix file to import, only an adjacency is established and the received NLRIs, including their attributes, are logged.
@@ -62,9 +62,9 @@ Without any prefix file to import, only an adjacency is established and the rece
 EOF
 
 my %BGP_ERROR_CODES = (
-			1 => { 		__NAME__ => "Message Header Error", 
-				 	1 => "Connection Not Synchronized", 
-					2 => "Bad Message Length", 
+			1 => { 		__NAME__ => "Message Header Error",
+				 	1 => "Connection Not Synchronized",
+					2 => "Bad Message Length",
 					3 => "Bad Message Type",
 			},
 			2 => {		__NAME__ => "OPEN Message Error",
@@ -121,7 +121,7 @@ my $holdtime = 60;
 my $keepalive = 20;
 my $nolisten = 0;
 
-GetOptions( 	'help' 		=> sub{ sub_debug("m","$help"); exit; },   
+GetOptions( 	'help' 		=> sub{ sub_debug("m","$help"); exit; },
 		'm=s' 		=> \$prefix_limit,
 		'l=s' 		=> \$default_local_pref,
 		'v+' 		=> \$verbose,
@@ -139,7 +139,7 @@ GetOptions( 	'help' 		=> sub{ sub_debug("m","$help"); exit; },
 		'nolisten'	=> \$nolisten
  );
 
-	
+
 die "\nPlease provide -myas, -myip, -peerip and -peeras!\n$help" unless ($myas && $myip && $peeras && $peerip);
 
 die "Peer IP address is not valid: $peerip" 	if (sub_checkip($peerip));
@@ -149,34 +149,35 @@ die "Our AS number is not valid: $myas"   	if (sub_checkas($myas));
 
 my $peer_type = ( $myas == $peeras ) ? "iBGP" : "eBGP";
 
-if ($next_hop_self ne "0") 
+if ($next_hop_self ne "0")
 {
-	if ($peer_type eq "eBGP")
-	{
-		sub_debug ("i","Force to change next hop ignored due to eBGP session (next hop self implied here).\n");
-		$adj_next_hop = 1;
-		$next_hop_self = "$myip";
-	} elsif ($peer_type eq "iBGP") 
+	#if ($peer_type eq "eBGP")
+	#{
+#		sub_debug ("i","Force to change next hop ignored due to eBGP session (next hop self implied here).\n");
+#		$adj_next_hop = 1;
+#		$next_hop_self = "$myip";
+#	} elsif ($peer_type eq "iBGP")
+    if ($peer_type eq "iBGP")
 	{
 		if ($next_hop_self eq "")
 		{
 			$adj_next_hop = 1;
 			$next_hop_self = "$myip";
-		} else 
+		} else
 		{
 			die "Next hop self IP address is not valid: $next_hop_self" if sub_checkip($next_hop_self);
 			$adj_next_hop = 1;
 		}
 	}
-} else 
+} else
 {
 	$adj_next_hop = 0;
 	$next_hop_self = "$myip";
 };
-		
-die "Cannot open file $infile" 	if ( ($infile) && !( open (INPUT, $infile) ) ); 
+
+die "Cannot open file $infile" 	if ( ($infile) && !( open (INPUT, $infile) ) );
 close (INPUT);
-die "Cannot open file $outfile" if ( ($outfile) && !( open (OUTPUT,">$outfile") ) ); 
+die "Cannot open file $outfile" if ( ($outfile) && !( open (OUTPUT,">$outfile") ) );
 close (OUTPUT);
 
 die "Filter on input file actually requires an input file (-p)" if ( !($infile) && (%regex_filter) );
@@ -184,7 +185,7 @@ if (%regex_filter)
 {
 	foreach my $key (keys %regex_filter)
 	{
-		die "Key " . uc($key) . " is not valid.\n" 		unless (uc($key) =~ /NEIG|NLRI|ASPT|ORIG|NXHP|LOCP|MED|COMM|ATOM|AGG/); 
+		die "Key " . uc($key) . " is not valid.\n" 		unless (uc($key) =~ /NEIG|NLRI|ASPT|ORIG|NXHP|LOCP|MED|COMM|ATOM|AGG/);
 		die "Regex " . $regex_filter{$key} . " is bogus.\n" 	unless ( eval { qr/$regex_filter{$key}/ } );
 		# convert hash keys to upper case
 		$regex_filter{uc($key)} = delete $regex_filter{$key};
@@ -200,7 +201,7 @@ sub_debug ("m", "Will use prefixes from file $infile.\n") 					if $infile;
 sub_debug ("m", "Will write sent and received UPDATEs to file $outfile.\n") 			if $outfile;
 sub_debug ("m", "Maximum number of prefixes to be advertised: $prefix_limit.\n") 		if ($prefix_limit);
 sub_debug ("m", "Will spoof next hop address to $next_hop_self.\n") 				if (($adj_next_hop) && ($peer_type eq "iBGP"));
-sub_debug ("m", "Will set next hop address to $next_hop_self because of eBGP peering.\n") 	if ($peer_type eq "eBGP");
+sub_debug ("m", "Will set next hop address to $next_hop_self (eBGP peering).\n") 	if ($peer_type eq "eBGP");
 if (%regex_filter)
 {
 	sub_debug ("m", "Will apply filter to input file:\n");
@@ -208,7 +209,7 @@ if (%regex_filter)
 	{
 		sub_debug ("m", "\t" . uc($key) . " =~ /" .  $regex_filter{$key} . "/\n");
 	}
-} 
+}
 sub_debug ("m", "----------------------------------------------------------------------------------------------------------\n");
 
 if ($dry)
@@ -247,8 +248,8 @@ $bgp->event_loop();
 
 sub sub_debug
 {
-	my $level = shift(@_);	
-	my $msg   = shift(@_);	
+	my $level = shift(@_);
+	my $msg   = shift(@_);
 
 	print $msg if ($level eq "m");				# mandatory
 	print $msg if ($level eq "e");				# error
@@ -256,18 +257,18 @@ sub sub_debug
 	print $msg if ( ($level eq "i") && ($verbose >= 1) );	# informational
 	print $msg if ( ($level eq "d") && ($verbose >= 2) );	# debug
 
-	
+
 	if ( ($outfile) && ($level eq "u") )
 	{
-		open (OUTPUT,">>$outfile") || die "Cannot open file $outfile"; 
-		print OUTPUT "$msg";	
+		open (OUTPUT,">>$outfile") || die "Cannot open file $outfile";
+		print OUTPUT "$msg";
 		close (OUTPUT);
 	}
 }
 
 sub sub_checkip
 {
-	("@_" !~ /^([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])$/) 
+	("@_" !~ /^([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])$/)
 	? 1 : 0;
 
 }
@@ -290,7 +291,7 @@ sub sub_checkcommunity
 
 sub sub_checkprefix
 {
-	("@_" !~ /^(([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\/(\d|[12]\d|3[0-2])\s?)+$/) 
+	("@_" !~ /^(([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\/(\d|[12]\d|3[0-2])\s?)+$/)
 	? 1 : 0;
 
 }
@@ -314,12 +315,12 @@ sub sub_timer_callback
         my $peeras = $peer->peer_as();
 
 	if (! $peer->is_established)
-	{ 
+	{
 		sub_debug ("d", "Loop: trying to establish session.\n");
-		sub_connect_peer($peer); 
+		sub_connect_peer($peer);
 
 	} elsif (($infile) && (! $full_update))
-	{ 	
+	{
 		sub_debug ("m","Sending full update.\n");
 
 		$full_update = 1;
@@ -347,7 +348,7 @@ sub sub_reset_callback
         my $peerid = $peer->peer_id();
         my $peeras = $peer->peer_as();
         sub_debug ("e","Connection reset with peer $peerid, AS $peeras.\n");
-	
+
 }
 
 sub sub_keepalive_callback
@@ -387,7 +388,7 @@ sub sub_update_callback
 
 	my @communities = @$comm_ref;
 	sub_debug ("u", "[@communities] " );
-	
+
 	sub_debug ("u", "orig [IGP] ") if ($origin eq "0");
 	sub_debug ("u", "orig [EGP] ") if ($origin eq "1");
 	sub_debug ("u", "orig [INCOMPLETE] ") if ($origin eq "2");
@@ -445,8 +446,8 @@ sub sub_update_from_file
 	{
 		my $line = $_;
 		chomp($line);
-			
-		my @nlri = split /\|/,$line; 
+
+		my @nlri = split /\|/,$line;
 
 		# Filter based on advertising neighbor?
 		if (($regex_filter{"NEIG"}) && ($nlri[3] !~ qr/$regex_filter{"NEIG"}/) )
@@ -460,7 +461,7 @@ sub sub_update_from_file
 		{
 			sub_debug ("d", "Line [$.],Prefix [$nlri[5]] failed because of wrong prefix format.\n");
 			next;
-		}; 
+		};
 
 		# Filter based on prefix?
 		if (($regex_filter{"NLRI"}) && ($nlri[5] !~ qr/$regex_filter{"NLRI"}/) )
@@ -484,9 +485,9 @@ sub sub_update_from_file
 			sub_debug ("d", "Line [$.], Prefix [$prefix] skipped due to ASPT filter (value was: $nlri[6]).\n");
 			next;
 		};
-	
+
 		my $aspath = Net::BGP::ASPath->new($nlri[6]);
- 		
+
 		# add own AS for eBGP adjacencies
                 $aspath += "$myas" if ($peer_type eq "eBGP");
 
@@ -504,14 +505,14 @@ sub sub_update_from_file
 			next;
 		};
 
-		my @communities = split / /,$nlri[11]; 
+		my @communities = split / /,$nlri[11];
 
 
 		# Filter based on LOCAL_PREF?
-		# note: line is skipped if LOCP filter is specified, but line doesnt contain any LOCAL_PREF values 
+		# note: line is skipped if LOCP filter is specified, but line doesnt contain any LOCAL_PREF values
 		# also, for iBGP peerings, LOCAL_PREF is forced to $default_local_pref if none is provided
 		my $local_pref;
-		if  (($nlri[9] ne "0") && ($nlri[9] ne "")) 
+		if  (($nlri[9] ne "0") && ($nlri[9] ne ""))
 		{
 			if ( ($regex_filter{"LOCP"}) && ($nlri[9] !~ qr/$regex_filter{"LOCP"}/) )
 			{
@@ -529,13 +530,13 @@ sub sub_update_from_file
 		{
 			sub_debug ("d", "Line [$.], Prefix [$prefix] - doesnt contain valid LOCAL_PREF value but we peer via iBGP (value forced to $default_local_pref).\n");
 			$local_pref = $default_local_pref;
-		};		
+		};
 
 		# Filter based on MED?
-		# note: line is skipped if MED filter is specified, but line doesnt contain any MED values 
+		# note: line is skipped if MED filter is specified, but line doesnt contain any MED values
 		# (use -f MED='' in such a case)
 		my $med;
-		if  (($nlri[10] ne "0") && ($nlri[10] ne "")) 
+		if  (($nlri[10] ne "0") && ($nlri[10] ne ""))
 		{
 			if ( ($regex_filter{"MED"}) && ($nlri[10] !~ qr/$regex_filter{"MED"}/) )
 			{
@@ -551,15 +552,15 @@ sub sub_update_from_file
 			{
 				sub_debug ("d", "Line [$.], Prefix [$prefix] skipped - doesnt contain MED value, but MED filter specified.\n");
 				next;
-			}	
-		};		
+			}
+		};
 
 		# NEXT_HOP valid?
 		if (sub_checkip($nlri[8]))
 		{
 			sub_debug ("d", "Line [$.], Prefix [ $prefix ] failed because of wrong NEXT_HOP format.\n");
 			next;
-		}; 
+		};
 
 		# Filter based on NEXT_HOP?
 		if (($regex_filter{"NXHP"}) && ($nlri[8] !~ qr/$regex_filter{"NXHP"}/) )
@@ -573,9 +574,9 @@ sub sub_update_from_file
                 $nexthop = $next_hop_self if ( ($peer_type eq "eBGP") || ($peer_type eq "iBGP") && ($adj_next_hop) );
 
 		my $origin;
-		
+
 		# Filter based on ORIGIN?
-		# note: line is skipped if ORIGIN filter is specified, but line doesnt contain vaild ORIGIN values 
+		# note: line is skipped if ORIGIN filter is specified, but line doesnt contain vaild ORIGIN values
 		# if no filter is specified, and ORIGIN is empty, INCOMPLETE will be set
 		if ($nlri[7]  =~ /^(IGP|EGP|INCOMPLETE)$/)
 		{
@@ -598,9 +599,9 @@ sub sub_update_from_file
 			sub_debug ("d", "Line [$.], Prefix [$prefix] - doesnt contain valid ORIGIN value, ORIGIN adjusted to INCOMPLETE.\n");
 			$origin = 2;
 		};
-		
+
 		my @agg;
-		
+
 		# Filter based on AGGREGATOR?
 		if (($nlri[13]) && ($nlri[13] ne ""))
 		{
@@ -618,7 +619,7 @@ sub sub_update_from_file
 			next;
 	 	};
 
-		my $atomic_agg; 
+		my $atomic_agg;
 
 		# Filter based on ATOMIC_AGGREGATE
 		if (($nlri[12]) && ($nlri[12] ne ""))
@@ -628,7 +629,7 @@ sub sub_update_from_file
 				sub_debug ("d", "Line [$.], Prefix [$prefix] skipped due to ATOM filter (value was: $nlri[12]).\n");
 				next;
 			} else
-			{	
+			{
 				$atomic_agg = ($nlri[12] eq "AG") ? 1 : 0;
 			}
 		} elsif  (!($nlri[12]) && ($regex_filter{"ATOM"}))
@@ -661,11 +662,11 @@ sub sub_update_from_file
 			$update->atomic_aggregate("1") 		if ($atomic_agg);
 			$update->med($med)			if ($med);
 			$update->local_pref($local_pref) 	if ($peer_type eq "iBGP");
-			
+
 			$peer->update($update);
 		}
 		$cur += 1;
 		last if (($prefix_limit) && ($cur > $prefix_limit));
-	}	
+	}
 	close (INPUT);
 }
